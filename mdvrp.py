@@ -622,7 +622,7 @@ class MDVRP_ACO:
 # Example usage
 if __name__ == "__main__":
 	# Replace with your actual file path
-	file_path = "test_data/p01.txt"
+	file_path = "test_data/p04"
 
 	# Create ACO solver
 	aco = MDVRP_ACO(
