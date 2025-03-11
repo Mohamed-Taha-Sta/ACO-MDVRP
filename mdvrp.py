@@ -4,6 +4,11 @@ from scipy.spatial.distance import euclidean
 import random
 import copy
 
+# TODO:
+#       -Actually implement objective min function;
+#       -Do not assign customers to depots;
+#
+
 
 class MDVRP_ACO:
 	def __init__(self, file_path, num_ants=30, alpha=1.0, beta=5.0, rho=0.5, q0=0.9, max_iterations=100):
