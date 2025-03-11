@@ -1,147 +1,148 @@
-# ACO Algorithm for MDVRP - Pseudocode
+# MDVRP-ACO Algorithm Pseudocode
 
-## Initialization
+## 1. Initialization
 ```
-function Initialize(file_path, num_ants, alpha, beta, rho, q0, max_iterations):
-    Parse MDVRP data file
+function Initialize(file_path, parameters):
+    Read problem data (customers, depots, capacities)
     Calculate distance matrix between all nodes
-    Calculate heuristic information (inverse of distances)
-    Initialize pheromone matrix with uniform values
-    best_solution ← null
-    best_cost ← infinity
+    Initialize pheromone matrix with small uniform values
+    best_solution = null
+    best_cost = infinity
 ```
+**Explanation:** Setup phase that reads the problem data, creates the initial pheromone matrix, and prepares tracking variables.
 
-## Main ACO Loop
+## 2. Main ACO Loop
 ```
 function Run():
     for iteration = 1 to max_iterations:
-        solutions ← []
+        solutions = []
         
-        # Each ant constructs a solution
         for ant = 1 to num_ants:
-            solution, cost ← ConstructSolution(ant)
+            solution, cost = ConstructSolution()
+            Apply LocalSearch(solution, cost)
             solutions.Add((solution, cost))
             
-            # Update best solution
             if cost < best_cost:
-                best_solution ← solution
-                best_cost ← cost
+                best_solution = solution
+                best_cost = cost
         
-        # Update pheromones
         UpdatePheromones(solutions)
-        
+    
     return best_solution, best_cost
 ```
+**Explanation:** The core iteration process where each ant builds a solution, local improvements are applied, and the pheromone trails are updated based on solution quality.
 
-## Solution Construction
+## 3. Solution Construction
 ```
-function ConstructSolution(ant_idx):
-    # Initialize routes for each depot
-    routes ← [[] for each depot]
-    unassigned_customers ← list of all customers
+function ConstructSolution():
+    // Assign customers to depots based on pheromone and distance
+    depot_customers = AssignCustomersToDepots()
     
-    # Assign customers to depots
-    for each customer in unassigned_customers:
-        Calculate probabilities for each depot based on distance
-        Select depot using probability rules
-        Add customer to selected depot's list
+    solution = []
+    total_cost = 0
     
-    # Construct routes for each depot
-    final_routes ← []
-    total_cost ← 0
-    
+    // Build routes for each depot
     for each depot and its assigned customers:
-        depot_routes ← ConstructDepotRoutes(depot, customers, max_load)
-        total_cost += CalculateRoutesCost(depot, depot_routes)
+        depot_routes = ConstructDepotRoutes(depot, customers, max_load, max_vehicles)
         
+        // Add routes to solution
         for each route in depot_routes:
-            final_route ← [depot] + route + [depot]
-            final_routes.Add(final_route)
+            final_route = [depot] + route + [depot]
+            solution.Add(final_route)
+            total_cost += CalculateRouteCost(final_route)
     
-    return final_routes, total_cost
+    return solution, total_cost
 ```
+**Explanation:** Solution construction happens in two stages - first assigning customers to depots, then building optimized routes for each depot's customers.
 
-## Depot Route Construction
+## 4. Route Construction
 ```
-function ConstructDepotRoutes(depot, customers, max_load):
-    routes ← []
-    remaining_customers ← customers.copy()
+function ConstructDepotRoutes(depot, customers, max_load, max_vehicles):
+    routes = []
+    remaining_customers = customers.copy()
     
-    while remaining_customers is not empty:
-        route ← []
-        current_load ← 0
+    // Create routes until all customers served or vehicle limit reached
+    while remaining_customers and routes.length < max_vehicles:
+        route = []
+        current_load = 0
+        current_node = depot
         
-        # Select first customer
-        Calculate probabilities for each customer based on pheromone and distance
-        Select first_customer based on probability rules
-        Add first_customer to route
-        current_load += demand[first_customer]
-        Remove first_customer from remaining_customers
-        current_node ← first_customer
-        
-        # Build rest of route
-        while current_node is not null:
-            next_node ← SelectNextNode(current_node, remaining_customers, current_load, max_load)
+        // Build route incrementally
+        while remaining_customers:
+            next_node = SelectNextNode(current_node, remaining_customers, current_load, max_load)
             
             if next_node is not null:
-                Add next_node to route
+                route.Add(next_node)
                 current_load += demand[next_node]
-                Remove next_node from remaining_customers
-                current_node ← next_node
+                remaining_customers.Remove(next_node)
+                current_node = next_node
             else:
-                current_node ← null
+                break  // Return to depot
         
-        if route is not empty:
+        if route not empty:
             routes.Add(route)
     
     return routes
 ```
+**Explanation:** Routes are constructed one by one for each depot, adding customers incrementally until capacity constraints or vehicle limits are reached.
 
-## Next Node Selection
+## 5. Next Node Selection
 ```
 function SelectNextNode(current_node, candidates, current_load, max_load):
-    feasible_candidates ← []
-    
-    # Find candidates that don't exceed capacity
-    for each candidate in candidates:
-        if current_load + demand[candidate] <= max_load:
-            feasible_candidates.Add(candidate)
+    // Find candidates that don't exceed capacity
+    feasible_candidates = [c for c in candidates if current_load + demand[c] <= max_load]
     
     if feasible_candidates is empty:
-        return null
+        return null  // Return to depot
     
-    # Calculate probabilities based on pheromone and distance
-    probs ← []
+    // Calculate selection probabilities
     for each candidate in feasible_candidates:
-        tau ← pheromone[current_node][candidate]
-        eta ← heuristic[current_node][candidate]
-        prob ← (tau^alpha) * (eta^beta)
-        probs.Add(prob)
+        tau = pheromone[current_node][candidate]  // Pheromone strength
+        eta = 1/distance[current_node][candidate]  // Heuristic (inverse distance)
+        probability = (tau^alpha) * (eta^beta)
     
-    Normalize probabilities
-    
-    # Select next node
-    if random() < q0:
-        # Greedy selection (exploitation)
-        return feasible_candidates[index of max value in probs]
-    else:
-        # Probabilistic selection (exploration)
-        Select using roulette wheel selection based on probs
-        return selected candidate
+    // Decision rule: exploitation vs exploration
+    if random() < q0:  // Exploitation (greedy)
+        return candidate with highest probability
+    else:  // Exploration (probabilistic)
+        return candidate selected according to probabilities
 ```
+**Explanation:** Selects the next customer to visit based on pheromone levels and distances, with a balance between exploitation (choosing the best option) and exploration (trying alternatives).
 
-## Pheromone Update
+## 6. Pheromone Update
 ```
 function UpdatePheromones(solutions):
-    # Evaporation
-    pheromone ← (1 - rho) * pheromone
+    // Evaporation
+    for i, j in pheromone matrix:
+        pheromone[i][j] = (1 - rho) * pheromone[i][j]
     
-    # Deposit new pheromones
-    for each (solution, cost) in solutions:
-        delta_tau ← 1 / cost
+    // Deposit new pheromones
+    for solution, cost in solutions:
+        delta_tau = 1 / cost  // Better solutions deposit more
         
-        for each route in solution:
+        for route in solution:
             for i = 0 to length(route) - 2:
                 pheromone[route[i]][route[i+1]] += delta_tau
-                pheromone[route[i+1]][route[i]] += delta_tau  # Symmetric
 ```
+**Explanation:** Pheromone trails are updated by first evaporating existing pheromones (forgetting) and then depositing new pheromones based on solution quality (learning).
+
+## 7. Local Search
+```
+function LocalSearch(solution, cost):
+    improved = true
+    
+    while improved:
+        improved = false
+        
+        for each route in solution:
+            for i, j in route (i < j):
+                // Try 2-opt exchange (reverse segment between i and j)
+                new_route = route[:i+1] + reverse(route[i+1:j]) + route[j:]
+                
+                if Cost(new_route) < Cost(route):
+                    route = new_route
+                    improved = true
+    
+    return improved_solution, new_cost
+```
+**Explanation:** Improves solutions using 2-opt local search, which tries reversing route segments to find shorter paths.
