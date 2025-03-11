@@ -443,7 +443,7 @@ class MDVRP_ACO:
 # Example usage
 if __name__ == "__main__":
 	# Replace with your actual file path
-	file_path = "p01.txt"
+	file_path = "test_data/p02"
 
 	# Create ACO solver
 	aco = MDVRP_ACO(
