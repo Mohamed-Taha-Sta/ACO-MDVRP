@@ -4,10 +4,6 @@ from scipy.spatial.distance import euclidean
 import random
 import copy
 
-# TODO:
-#       -Actually implement objective min function;
-#       -Do not assign customers to depots;
-#
 
 
 class MDVRP_ACO:
@@ -627,7 +623,7 @@ class MDVRP_ACO:
 # Example usage
 if __name__ == "__main__":
 	# Replace with your actual file path
-	file_path = "test_data/p04"
+	file_path = "test_data/p01.txt"
 
 	# Create ACO solver
 	aco = MDVRP_ACO(
