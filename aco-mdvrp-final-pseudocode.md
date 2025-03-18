@@ -103,7 +103,7 @@ function SelectNextNode(current_node, candidates, current_load, max_load):
     for each candidate in feasible_candidates:
         tau = pheromone[current_node][candidate]  // Pheromone strength
         eta = 1/distance[current_node][candidate]  // Heuristic (inverse distance)
-        probability = (tau^alpha) * (eta^beta)
+        probability = (tau^alpha) * (eta^beta) / sumOfAllAttainableNodesProbabilities
     
     // Decision rule: exploitation vs exploration
     if random() < q0:  // Exploitation (greedy)
