@@ -458,7 +458,7 @@ class MDVRP_ACO:
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.grid(True)
-        plt.savefig('mdvrp_solution1.png', dpi=300)
+        plt.savefig('mdvrp_solution.png', dpi=300)
         plt.close()
 
         # Plot convergence
