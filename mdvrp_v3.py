@@ -477,7 +477,6 @@ class MDVRP_ACO:
     def calculate_objective_function(self, solution):
         """
         Calculate the objective function value using the bi-objective formula.
-
         Parameters:
         - solution: A list of routes, where each route is a list of node indices
 
@@ -555,7 +554,7 @@ class MDVRP_ACO:
 
         plt.title(f'MDVRP Solution\nObjective: {objective_value:.2f} '
                   f'(vehicle_weight={self.vehicle_cost_weight}, distance_weight={self.distance_cost_weight})\n'
-                  f'Vehicles: {total_vehicles}, Distance: {total_distance:.2f}')
+                  f'Vehicles: {total_vehicles}/{self.vehicles_per_depot * self.num_depots}, Distance: {total_distance:.2f}')
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.grid(True)
